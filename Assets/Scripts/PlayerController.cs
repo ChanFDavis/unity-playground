@@ -2,34 +2,50 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(Rigidbody))] // Adds a Rigidbody if object doesn't have one already.
 public class PlayerController : MonoBehaviour {
 
     public float speed; // Movement speed
     public float jumpHeight;
 
-    private bool isGrounded; // Is the player touching the ground?
-    private Rigidbody rb; // This object's rigid body
+    //private Rigidbody rb; // This object's rigid body
+    private CharacterController controller;
+    private Vector3 velocity;
 
     private void Start()
     {
-        rb = GetComponent<Rigidbody>();
+        // GetComponent<type>() gets the specified component from the object using this script.
+        //rb = GetComponent<Rigidbody>();
+        controller = GetComponent<CharacterController>();
+        velocity = Vector3.zero;
     }
 
-    private void FixedUpdate() // Called before physics calculation
+    private void Update()
     {
         float moveHorizontal = Input.GetAxis("Horizontal");
         float moveVertical = Input.GetAxis("Vertical");
 
-        float jump = jumpHeight * Input.GetAxis("Jump");
+//        float jump = jumpHeight * Input.GetAxis("Jump");
 
-        Debug.Log(Input.GetAxis("Jump"));
+        Vector3 move = new Vector3(moveHorizontal, 0.0f, moveVertical) * speed;
 
-        rb.position += new Vector3(moveHorizontal, 0, moveVertical);
+        // Time.deltaTime is the time passed since the last frame.
+        velocity.y += Physics.gravity.y * Time.deltaTime;
 
-        Vector3 movement = new Vector3(moveHorizontal, jump, moveVertical);
+        if (controller.isGrounded && velocity.y < 0)
+        {
+            velocity.y = 0;
+        }
 
-        rb.AddForce(movement * speed);
-    } 
+        //TODO: Put these two move calls into one.
+        controller.Move(velocity * Time.deltaTime);
+        controller.Move(move * Time.deltaTime * speed);
+
+        if(move != Vector3.zero)
+        {
+            transform.forward = move;
+        }
+
+
+    }
 
 }
